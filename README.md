@@ -30,6 +30,8 @@ Start:
 
 Hibernate Configuration File:
 -----------------------------
+Hibernate-Tutorial-1
+
 Use to tell how to connect to DB.
 Hibernate uses JDBC in background.
 
@@ -157,6 +159,166 @@ Session:
 2. Main object used to store and retrieve objects
 3. short live object (we get session use it and throw away)
 4. Retrived from sessionFactory.
+
+package com.main;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import com.model.Student;
+
+public class RunHibernate {
+
+	public static void main(String[] args) {
+		
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Student.class).buildSessionFactory();
+		
+		Session session = factory.getCurrentSession();
+		
+		try {
+			
+			Student student = new Student("Rahul", "Choudhary", "thecrazzyrahul@gmail.com");
+			
+			session.beginTransaction();
+			
+			session.save(student);
+			
+			session.getTransaction().commit();
+			
+			System.out.println("Student is Persist To Database");
+			
+		} catch (Exception e) {
+			factory.close();
+		}
+
+	}
+
+}
+
+Primary Key:
+------------
+Hibernate-Tutorial-2
+
+primary key should be unique and not null.
+In above program we just pass the property of student to DB and id is maintain by the DB.
+when we create the table we mention id as auto_increment which will insert the id automatically.
+
+GenerationType.AUTO     : Pick an appropriate strategy for the pirticular database.
+GenerationType.IDENTITY : Assign primary key using database identity column. like mysql
+GenerationType.SEQUENCE : Assign primary key using database sequence. like oracle
+GenerationType.TABLE    : Assign primary key using an underlying database table to ensure uniqueness.
+
+We can genrate the primary key using custom genration strategy:
+1. create subclass for org.hibernate.id.SequenceGenrator
+2. override the method : public Serializable genrate()
+
+
+Now we change student class id : Hibernate will let Database to manage the id using identity column in our case as we are using mysql.
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="id")
+	private int id;
+
+Student.java
+
+package com.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="student")
+public class Student {
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="id")
+	private int id;
+	
+	@Column(name="first_name")
+	private String firstName;
+	
+	@Column(name="last_name")
+	private String lastName;
+	
+	@Column(name="email")
+	private String email;
+	
+	public Student() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public Student(String firstName, String lastName, String email) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	@Override
+	public String toString() {
+		return "Student [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + "]";
+	}
+	
+}
+
+Change Starting Index:
+----------------------
+alter table hb_student_tracker.student auto_increment = 1000;
+
+truncate table hb_student_tracker.student;
+
+Note: Once we truncate the previous alter will be gone.
+
+Read Objects: 
+-------------
+Hibernate-Tutorial-3
+
+When we save java object using session.save(student) we get the primary key back if successfuly saved.
+we can retrive that key by using student.getId as we didnt set the id it was inserted by database but when we do get id what we see is the result of session.save.
+
+session.get(Student.class, 2) will return null if there key not present and return object if key is present.
+
+
+
+
+
 
 
 
