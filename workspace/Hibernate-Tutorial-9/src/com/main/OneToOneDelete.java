@@ -7,7 +7,7 @@ import org.hibernate.cfg.Configuration;
 import com.model.Instructor;
 import com.model.InstructorDetail;
 
-public class OneToOne {
+public class OneToOneDelete {
 
 	public static void main(String[] args) {
 
@@ -17,24 +17,27 @@ public class OneToOne {
 												.addAnnotatedClass(Instructor.class)
 												.buildSessionFactory();
 		
-		InstructorDetail insDetail1 = new InstructorDetail("thecrazzyrahul@youtube", "learning new things");
-		Instructor ins1 = new Instructor("Rahul", "Choudhary", "rahul@gmail.com", insDetail1);
-		
-		InstructorDetail insDetail2 = new InstructorDetail("shalu@youtube", "cooking new things");
-		Instructor ins2 = new Instructor("Shalu", "Baliyan", "shalu@gmail.com", insDetail2);
-
 		Session session = factory.getCurrentSession();
 
 		try {
 
 			session.beginTransaction();
 			
-			session.save(ins1);
-			session.save(ins2);
+			Instructor instructor = session.get(Instructor.class,1);
+			
+			System.out.println("Instructor Found: " + instructor );
+			
+			if(instructor != null) {
+				
+				System.out.println("About to delete instructor");
+				
+				session.delete(instructor);
+			}
+			
 
 			session.getTransaction().commit();
 			
-			System.out.println("One To One Mapping Done");
+			System.out.println("One To One Mapping Delete Done");
 
 		} catch (Exception e) {
 			factory.close();

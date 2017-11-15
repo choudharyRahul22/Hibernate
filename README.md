@@ -554,6 +554,264 @@ public class TestJdbc {
 
 }
 
+One to One Add:
+
+Instructor Detail Class
+package com.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "instructor_detail")
+public class InstructorDetail {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	private int id;
+
+	@Column(name = "youtube_channel")
+	private String youtubeChannel;
+
+	@Column(name = "hobby")
+	private String hobby;
+
+	public InstructorDetail() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public InstructorDetail(String youtubeChannel, String hobby) {
+		this.youtubeChannel = youtubeChannel;
+		this.hobby = hobby;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getYoutubeChannel() {
+		return youtubeChannel;
+	}
+
+	public void setYoutubeChannel(String youtubeChannel) {
+		this.youtubeChannel = youtubeChannel;
+	}
+
+	public String getHobby() {
+		return hobby;
+	}
+
+	public void setHobby(String hobby) {
+		this.hobby = hobby;
+	}
+
+	@Override
+	public String toString() {
+		return "InstructorDetail [id=" + id + ", youtubeChannel=" + youtubeChannel + ", hobby=" + hobby + "]";
+	}
+
+}
+
+Instructor Class
+package com.model;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "instructor")
+public class Instructor {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	private int id;
+
+	@Column(name = "first_name")
+	private String firstName;
+
+	@Column(name = "last_name")
+	private String lastName;
+
+	@Column(name = "email")
+	private String email;
+
+	@OneToOne(cascade=CascadeType.ALL)
+	@JoinColumn(name="instructor_detail_id")
+	private InstructorDetail instructorDetail;
+
+	public Instructor() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public Instructor(String firstName, String lastName, String email, InstructorDetail instructorDetail) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
+		this.instructorDetail = instructorDetail;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public InstructorDetail getInstructorDetail() {
+		return instructorDetail;
+	}
+
+	public void setInstructorDetail(InstructorDetail instructorDetail) {
+		this.instructorDetail = instructorDetail;
+	}
+
+	@Override
+	public String toString() {
+		return "Instructor [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
+				+ ", instructorDetail=" + instructorDetail + "]";
+	}
+
+}
+
+Add one to one
+package com.main;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import com.model.Instructor;
+import com.model.InstructorDetail;
+
+public class OneToOne {
+
+	public static void main(String[] args) {
+
+		SessionFactory factory = new Configuration()
+												.configure("hibernate.cfg.xml")
+												.addAnnotatedClass(InstructorDetail.class)
+												.addAnnotatedClass(Instructor.class)
+												.buildSessionFactory();
+		
+		InstructorDetail insDetail1 = new InstructorDetail("thecrazzyrahul@youtube", "learning new things");
+		Instructor ins1 = new Instructor("Rahul", "Choudhary", "rahul@gmail.com", insDetail1);
+		
+		InstructorDetail insDetail2 = new InstructorDetail("shalu@youtube", "cooking new things");
+		Instructor ins2 = new Instructor("Shalu", "Baliyan", "shalu@gmail.com", insDetail2);
+
+		Session session = factory.getCurrentSession();
+
+		try {
+
+			session.beginTransaction();
+			
+			session.save(ins1);
+			session.save(ins2);
+
+			session.getTransaction().commit();
+			
+			System.out.println("One To One Mapping Done");
+
+		} catch (Exception e) {
+			factory.close();
+		}
+
+	}
+
+}
+
+Delete One To One:
+package com.main;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import com.model.Instructor;
+import com.model.InstructorDetail;
+
+public class OneToOneDelete {
+
+	public static void main(String[] args) {
+
+		SessionFactory factory = new Configuration()
+												.configure("hibernate.cfg.xml")
+												.addAnnotatedClass(InstructorDetail.class)
+												.addAnnotatedClass(Instructor.class)
+												.buildSessionFactory();
+		
+		Session session = factory.getCurrentSession();
+
+		try {
+
+			session.beginTransaction();
+			
+			Instructor instructor = session.get(Instructor.class,1);
+			
+			System.out.println("Instructor Found: " + instructor );
+			
+			if(instructor != null) {
+				
+				System.out.println("About to delete instructor");
+				
+				session.delete(instructor);
+			}
+			
+
+			session.getTransaction().commit();
+			
+			System.out.println("One To One Mapping Delete Done");
+
+		} catch (Exception e) {
+			factory.close();
+		}
+
+	}
+
+}
+
 
 
 
