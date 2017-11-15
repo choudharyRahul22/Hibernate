@@ -315,6 +315,250 @@ we can retrive that key by using student.getId as we didnt set the id it was ins
 
 session.get(Student.class, 2) will return null if there key not present and return object if key is present.
 
+HQL:
+----
+Hibernate-Tutorial-5
+
+Hibernate Query Language.
+Used to query the DB.
+
+List of students:
+List<Student> students = session.createQuery("from Student").getResultList();
+
+List of students where firstname = rahul
+List<Student> students = session.createQuery("from Student s where s.firstName = 'Rahul' ").getResultList();
+
+List of students where firstname = rahul and last name = singh
+List<Student> students = session.createQuery("from Student s where s.firstName = 'Rahul' or s.lastName = 'Singh' ").getResultList();
+
+List of students where email like %@gmail.com.
+List<Student> students = session.createQuery("from Student s where email like '%@gmail.com' ").getResultList();
+
+Note: In HQL we use java property to fetch data from db.
+.list() is depricated now, we use .getResultList();
+
+Log4j:
+------
+Hibernate-Tutorial-5
+
+1. Add log4j to your project classpath
+
+1a. Download log4j v1.2.17 from this link: – http://central.maven.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar
+
+1b. Copy this file to your project’s lib directory
+1c. Right-click your Eclipse project and select Properties
+
+1d. Select Build Path > Libraries > Add JARS…
+
+1e. Select the log4j-1.2.17.jar file from the lib directory
+
+2. Add log4j.properties to your “src” directory
+
+2a. Copy the text from below
+
+# Root logger option
+log4j.rootLogger=DEBUG, stdout
+ 
+# Redirect log messages to console
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target=System.out
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+ 
+log4j.logger.org.hibernate=TRACE
+
+2b. Save this file as "log4j.properties" in your “src” directory
+
+Note: This file has an important setting:
+
+log4j.logger.org.hibernate=TRACE 
+
+This allows you see a low-level trace of Hibernate and this allows you see the real SQL parameter values.
+
+Now run your application. You will see a lot of low-level TRACE logs in the Eclipse Console window.
+
+Right-click in the Eclipse Console window and select Find/Replace…
+
+Search for: binding parameter
+
+or search for: extracted value
+
+Updating Objects:
+-----------------
+Hibernate-Tutorial-6
+
+When we update object using setter it will be in memory until we commit the transaction.
+
+Retrive object and update object property by using setter:
+session = factory.getCurrentSession();
+
+			session.beginTransaction();
+
+			Student student = session.get(Student.class, 1);
+			System.out.println(student);
+
+			System.out.println("Updating Student setting firstName = Ravi using setter");
+			student.setFirstName("Ravi");
+
+			session.getTransaction().commit();
+
+Retrive object and update object using hql:
+session = factory.getCurrentSession();
+
+			session.beginTransaction();
+
+			Student student = session.get(Student.class, 1);
+			System.out.println(student);
+
+			System.out.println("Updating Student setting firstName = Shalu using HQL");
+			session.createQuery("update Student set firstName='Shalu' where id=1").executeUpdate();
+
+			session.getTransaction().commit();
+
+Delete Object:
+--------------
+Hibernate-Tutorial-7
+
+System.out.println("********************************************************");
+		try {
+
+			session = factory.getCurrentSession();
+
+			session.beginTransaction();
+
+			List<Student> students = session.createQuery("from Student").getResultList();
+			System.out.println("Delete student from table where firstName = 'Rahul' ");
+
+			for (Student student : students) {
+				if (student.getFirstName().equals("Rahul")) {
+					session.delete(student);
+				}
+			}
+
+			session.getTransaction().commit();
+
+			System.out.println(students);
+
+		} catch (Exception e) {
+			factory.close();
+		}
+
+		System.out.println("********************************************************");
+		try {
+
+			session = factory.getCurrentSession();
+
+			session.beginTransaction();
+
+			System.out.println("Delete student from table where firstName = 'Deepak' ");
+			session.createQuery("delete from Student where firstName='Deepak'").executeUpdate();
+
+			session.getTransaction().commit();
+
+		} catch (Exception e) {
+			factory.close();
+		}
+
+One To One Mapping:
+-------------------
+Cascade : same operation will be done.
+Like we have instructor and instructor_detail table.
+if we save instructor then instructor_detail will also be save
+if we delete instructor then instructor_detail will also be deleted
+
+1. New/Transient -> save/persist -> Persistent/Managed ->rollback/new -> NewTransient
+
+2. Persistent/Managed -> refresh (sync from db not what is in memory)
+
+3. Persistent/Managed -> commit/rollback/close -> Detached -> merge -> Persistent/Managed
+
+4. Persistent/Managed -> delete/remove -> Removed -> persist/rollback -> Removed
+
+5. Removed -> commit -> New/Transient
+
+6. Removed -> rollback -> Detached.
+
+Cascade : If we have Instructor and Instructor Detail and we save Instructor than Instructor Detail will also be saved.
+
+Same as Cascade Delete
+
+Cascade Types:
+Persist, Remove, Refresh, Detach, Merge, All(have all these)
+
+One To One Mapping:
+-------------------
+Hibernate-Tutorial-9
+
+Schema is collection of tables view ....
+DROP SCHEMA IF EXISTS `hb-01-one-to-one-uni`;
+
+CREATE SCHEMA `hb-01-one-to-one-uni`;
+
+use `hb-01-one-to-one-uni`;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS `instructor_detail`;
+
+CREATE TABLE `instructor_detail` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `youtube_channel` varchar(128) DEFAULT NULL,
+  `hobby` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+
+DROP TABLE IF EXISTS `instructor`;
+
+CREATE TABLE `instructor` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(45) DEFAULT NULL,
+  `last_name` varchar(45) DEFAULT NULL,
+  `email` varchar(45) DEFAULT NULL,
+  `instructor_detail_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_DETAIL_idx` (`instructor_detail_id`),
+  CONSTRAINT `FK_DETAIL` FOREIGN KEY (`instructor_detail_id`) REFERENCES `instructor_detail` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+Test Connection with new schema:
+package com.jdbc;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+
+public class TestJdbc {
+	
+	public static void main(String[] args) {
+		
+		String jdbcUrl = "jdbc:mysql://localhost:3306/hb-01-one-to-one-uni?useSSL=false";
+		String user = "hbstudent";
+		String password = "hbstudent";
+		
+		
+		try {
+			
+			System.out.println("Connecting to Database");
+			
+			Connection connection = DriverManager.getConnection(jdbcUrl, user, password);
+			
+			System.out.println("Connection Successful " + connection);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
+
+
+
+
+
+
 
 
 
