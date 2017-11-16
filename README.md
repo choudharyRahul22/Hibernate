@@ -716,6 +716,7 @@ public class Instructor {
 }
 
 Add one to one
+Hibernate-Tutorial-10
 package com.main;
 
 import org.hibernate.Session;
@@ -817,6 +818,8 @@ Instructor unidirectional mapping to Instructor Detail.
 We can look instructor detail through instructor only.
 
 Now we look Bidirectional mapping:
+Hibernate-Tutorial-11
+
 Insrtuctor bidirectional to instructor detail.
 We can look instructor through instructor detail or instructor detail through instructor.
 
@@ -951,7 +954,109 @@ public class OneToOneBidirectional {
 
 }
 
+One To Many:
+------------
+Hibernate-Tutorial-12
 
+Eager and Lazy Load:
+--------------------
+Hibernate-Tutorial-13
+
+Default fetch type:
+One To One : Eager
+One To Many : Lazy
+Many To One : Eager
+Many To Many : Lazy
+
+Instructor Class:
+@OneToOne(fetch=FetchType.EAGER ,cascade = CascadeType.ALL)
+	@JoinColumn(name = "instructor_detail_id")
+	private InstructorDetail instructorDetail;
+
+Main Class:
+package com.main;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import com.model.Course;
+import com.model.Instructor;
+import com.model.InstructorDetail;
+
+public class Eager_Lazy_Loading {
+
+	public static void main(String[] args) {
+
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml")
+				.addAnnotatedClass(InstructorDetail.class).addAnnotatedClass(Instructor.class)
+				.addAnnotatedClass(Course.class).buildSessionFactory();
+
+		InstructorDetail instructorDetail = new InstructorDetail("thecrazzyrahul@youtube", "learning new things");
+		Instructor instructor = new Instructor("Rahul", "Choudhary", "rahul@gmail.com", instructorDetail);
+
+		Session session = factory.getCurrentSession();
+
+		try {
+
+			session.beginTransaction();
+
+			session.save(instructor);
+
+			Instructor instructor2 = session.get(Instructor.class, 1);
+			System.out.println(instructor2);
+
+			Course course = new Course();
+			course.setTitle("Cricket Instructor");
+
+			Course course2 = new Course();
+			course2.setTitle("Football Instructor");
+
+			instructor2.add(course);
+			instructor2.add(course2);
+			System.out.println(instructor2);
+
+			session.save(course);
+			session.save(course2);
+
+			Instructor instructor3 = session.get(Instructor.class, 1);
+			System.out.println("Debug Instructor: " + instructor3);
+			System.out.println("Debug Courses : " + instructor3.getCourses());
+
+			session.getTransaction().commit();
+
+			System.out.println("One To Many Mapping Done");
+
+		} catch (Exception e) {
+			session.close();
+			factory.close();
+		}
+
+	}
+
+}
+
+Lazy Demo:
+----------
+Hibernate-Tutorial-14
+
+If we close session and try to load lazy data we will get lazy data loading exception.
+
+Solution:
+1. Load the lazy data while session is open this data will be saved in memory and we can use it later.
+
+2. Write Hql query to fetch data and again we will going to have all data in memory.
+
+One To Many:
+------------
+A single Course can have Many Reviews.
+If Course is delete than there is no menaing of Reviews.
+
+So we are going to use 2 classes.
+1. Course
+2. Review
+
+Course ----has many -----review
 
 
 
